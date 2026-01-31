@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поздравлятор - Редактировать день рождения</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .photo-preview {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 50%;
+            margin-bottom: 20px;
+        }
+        .photo-placeholder {
+            width: 200px;
+            height: 200px;
+            background-color: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-gift"></i> Поздравлятор
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Сегодня и ближайшие</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/all">Все дни рождения</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/add">
+                            <i class="bi bi-plus-circle"></i> Добавить
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <h1 class="display-5 mb-4">
+                    <i class="bi bi-pencil-square"></i> Редактировать день рождения
+                </h1>
+
+                <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <span th:text="${errorMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <div class="text-center mb-4">
+                    <img th:if="${birthday.photoPath != null}" 
+                         th:src="@{'/photos/' + ${birthday.photoPath}}" 
+                         class="photo-preview" 
+                         alt="Текущее фото">
+                    <div th:unless="${birthday.photoPath != null}" class="photo-placeholder mx-auto">
+                        <i class="bi bi-person-circle" style="font-size: 120px; color: #6c757d;"></i>
+                    </div>
+                </div>
+
+                <form th:action="@{'/edit/' + ${birthday.id}}" th:object="${birthday}" method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Имя <span class="text-danger">*</span></label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="name" 
+                               th:field="*{name}" 
+                               required>
+                        <div th:if="${#fields.hasErrors('name')}" class="text-danger">
+                            <span th:errors="*{name}"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="birthDate" class="form-label">Дата рождения <span class="text-danger">*</span></label>
+                        <input type="date" 
+                               class="form-control" 
+                               id="birthDate" 
+                               th:field="*{birthDate}"
+                               required>
+                        <div th:if="${#fields.hasErrors('birthDate')}" class="text-danger">
+                            <span th:errors="*{birthDate}"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="photo" class="form-label">Новая фотография</label>
+                        <input type="file" 
+                               class="form-control" 
+                               id="photo" 
+                               name="photo" 
+                               accept="image/*"
+                               onchange="previewPhoto(this)">
+                        <div class="form-text">Оставьте пустым, чтобы сохранить текущее фото. Максимальный размер: 10MB</div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="/all" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Отмена
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Сохранить изменения
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function previewPhoto(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.querySelector('.photo-preview, .photo-placeholder');
+                    if (preview) {
+                        if (preview.classList.contains('photo-placeholder')) {
+                            preview.outerHTML = '<img src="' + e.target.result + '" class="photo-preview mx-auto" alt="Предпросмотр">';
+                        } else {
+                            preview.src = e.target.result;
+                        }
+                    }
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+</body>
+</html>

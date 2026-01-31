@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 
@@ -23,11 +24,11 @@ public class Birthday {
     @Column(nullable = false)
     private String name;
 
-    @NotBlank(message = "Birthday is not be null")
-    @Column(nullable = false)
-    private LocalDate birthday;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    @Column(name = "birth_date", nullable = false)
+    private LocalDate birthDate;
 
-    @Column(length = 500)
+    @Column(name = "photo_path",length = 500)
     private String photoPath;
 
 }

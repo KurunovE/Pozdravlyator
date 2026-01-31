@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поздравлятор - Сегодня и ближайшие дни рождения</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .birthday-card {
+            transition: transform 0.2s;
+            margin-bottom: 20px;
+        }
+        .birthday-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .today-birthday {
+            border: 3px solid #28a745;
+            background-color: #d4edda;
+        }
+        .overdue-birthday {
+            border: 3px solid #dc3545;
+            background-color: #f8d7da;
+        }
+        .upcoming-birthday {
+            border: 2px solid #ffc107;
+            background-color: #fff3cd;
+        }
+        .photo-placeholder {
+            width: 150px;
+            height: 150px;
+            background-color: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin: 0 auto;
+        }
+        .photo-img {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-gift"></i> Поздравлятор
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/">Сегодня и ближайшие</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/all">Все дни рождения</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/add">
+                            <i class="bi bi-plus-circle"></i> Добавить
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <h1 class="display-5">
+                    <i class="bi bi-calendar-heart"></i> Сегодня и ближайшие дни рождения
+                </h1>
+                <p class="text-muted">Дни рождения на ближайшие 30 дней</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <label for="sortSelect" class="form-label">Сортировка:</label>
+                <select id="sortSelect" class="form-select" onchange="window.location.href='/?sort=' + this.value">
+                    <option value="days" th:selected="${currentSort == 'days'}">По дням до ДР</option>
+                    <option value="name" th:selected="${currentSort == 'name'}">По имени</option>
+                    <option value="date" th:selected="${currentSort == 'date'}">По дате рождения</option>
+                </select>
+            </div>
+        </div>
+
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div th:if="${birthdays == null or birthdays.isEmpty()}" class="alert alert-info">
+            <i class="bi bi-info-circle"></i> Нет дней рождения на ближайшие 30 дней.
+        </div>
+
+        <div class="row" id="birthdaysContainer" th:if="${birthdays != null and !birthdays.isEmpty()}">
+            <div class="col-md-6 col-lg-4 birthday-item" th:each="birthday : ${birthdays}" 
+                 th:attr="data-days=${birthdayService.getDaysUntil(birthday)}, 
+                          data-name=${birthday.name}, 
+                          data-date=${#temporals.format(birthday.birthDate, 'yyyy-MM-dd')},
+                          data-is-today=${birthdayService.isToday(birthday)},
+                          data-is-overdue=${birthdayService.isOverdue(birthday)}">
+                <div class="card birthday-card" 
+                     th:classappend="${birthdayService.isToday(birthday)} ? 'today-birthday' : (${birthdayService.isOverdue(birthday)} ? 'overdue-birthday' : 'upcoming-birthday')">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <img th:if="${birthday.photoPath != null}" 
+                                 th:src="@{'/photos/' + ${birthday.photoPath}}" 
+                                 class="photo-img" 
+                                 alt="Фото">
+                            <div th:unless="${birthday.photoPath != null}" class="photo-placeholder">
+                                <i class="bi bi-person-circle" style="font-size: 80px; color: #6c757d;"></i>
+                            </div>
+                        </div>
+                        <h5 class="card-title" th:text="${birthday.name}"></h5>
+                        <p class="card-text">
+                            <i class="bi bi-calendar3"></i> 
+                            <span th:text="${#temporals.format(birthday.birthDate, 'dd MMMM yyyy')}"></span>
+                        </p>
+                        <p class="card-text">
+                            <small class="text-muted">
+                                <span th:if="${birthdayService.isToday(birthday)}" class="badge bg-success">
+                                    <i class="bi bi-star-fill"></i> Сегодня!
+                                </span>
+                                <span th:unless="${birthdayService.isToday(birthday)}">
+                                    <span th:text="${birthdayService.getDaysUntil(birthday)}"></span> дней до ДР
+                                </span>
+                            </small>
+                        </p>
+                        <div class="btn-group" role="group">
+                            <a th:href="@{'/edit/' + ${birthday.id}}" class="btn btn-sm btn-primary">
+                                <i class="bi bi-pencil"></i> Редактировать
+                            </a>
+                            <form th:action="@{'/delete/' + ${birthday.id}}" method="post" style="display: inline;">
+                                <button type="submit" class="btn btn-sm btn-danger" 
+                                        onclick="return confirm('Вы уверены, что хотите удалить этот день рождения?')">
+                                    <i class="bi bi-trash"></i> Удалить
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
