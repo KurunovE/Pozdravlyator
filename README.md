@@ -36,11 +36,13 @@
    psql -U postgres -f main/resources/db/scripts/01_create_database.sql
    ```
 
-2. **Настройка подключения к БД** в файле `main/resources/application.properties`:
-   ```properties
-   spring.datasource.url=jdbc:postgresql://localhost:5432/birthdaydb
-   spring.datasource.username=postgres
-   spring.datasource.password=your_password
+2. **Настройка подключения к БД** в файле `main/resources/application.yaml`:
+   ```yaml
+   spring:
+     datasource:
+       url: jdbc:postgresql://localhost:5432/birthday_db
+       username: postgres
+       password: your_password
    ```
 
 3. **Сборка проекта:**
